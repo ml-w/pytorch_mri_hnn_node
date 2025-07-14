@@ -67,5 +67,10 @@ and quickly skim to see if two nodes have been incorrectly merged together, extr
 
 current progress: tested that the 3 criteria have been properly implemented, tested with negative edge egs and it works well, will test with positive egs and scale up from file to folder
 ask: 
-- criteria 1 minimum, criteria 2 and 3 overall, would that be okay? or all minimum?
+- all criteria overall, across slices
 - matted on certain slides, same colour on other slides? e.g. 931 yellow
+
+
+correct approach:
+use majority vote, majority of the slides is mated -> all are mated; majority separated -> all separated
+half half -> flag for manual review
