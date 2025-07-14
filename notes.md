@@ -74,3 +74,7 @@ ask:
 correct approach:
 use majority vote, majority of the slides is mated -> all are mated; majority separated -> all separated
 half half -> flag for manual review
+
+start training -> let dr wong know, managed w notion
+
+this weeks goal: at least started training
