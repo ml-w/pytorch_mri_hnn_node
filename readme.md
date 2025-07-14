@@ -1,0 +1,1 @@
+note that slices id start with 0, while ITK-snap start with 1
