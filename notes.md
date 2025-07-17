@@ -89,7 +89,6 @@ ultimate aim: train a model to tell if can further separate
 feed two types of data: cannot separate (original data, can be a single node or a matted node); can separate (augmented data, merge nodes that kinda look like matted nodes)
 
 next steps:
-# TODO (debug merge nodes match file size thing)
 # TODO 1. use merge_nodes.ipynb with normal criteria to check if some current annotations should actually be merged
 # TODO (find from hugging face / yolo some mri pretrained models)
 # TODO 2. check if the merged ones detected by 1 should actually be merged
