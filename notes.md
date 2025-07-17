@@ -89,10 +89,10 @@ ultimate aim: train a model to tell if can further separate
 feed two types of data: cannot separate (original data, can be a single node or a matted node); can separate (augmented data, merge nodes that kinda look like matted nodes)
 
 next steps:
-(debug merge nodes match file size thing)
-1. use merge_nodes.ipynb with normal criteria to check if some current annotations should actually be merged
-(find from hugging face / yolo some mri pretrained models)
-2. check if the merged ones detected by 1 should actually be merged
-3. use merge_nodes.ipynb with much looser criteria to create a set of augmented data of nodes that can be further separated
-4. preprocess the original data and augmented data by separating the mri image into 2d images of the same size, one node per image; can choose an image size to feed, use scale up and scale down
-5. train
+# TODO (debug merge nodes match file size thing)
+# TODO 1. use merge_nodes.ipynb with normal criteria to check if some current annotations should actually be merged
+# TODO (find from hugging face / yolo some mri pretrained models)
+# TODO 2. check if the merged ones detected by 1 should actually be merged
+# TODO 3. use merge_nodes.ipynb with much looser criteria to create a set of augmented data of nodes that can be further separated
+# TODO 4. preprocess the original data and augmented data by separating the mri image into 2d images of the same size, one node per image; can choose an image size to feed, use scale up and scale down
+# TODO 5. train
