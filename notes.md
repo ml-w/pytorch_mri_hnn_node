@@ -78,3 +78,19 @@ half half -> flag for manual review
 start training -> let dr wong know, managed w notion
 
 this weeks goal: at least started training
+
+
+
+
+
+
+
+ultimate aim: train a model to tell if can further separate
+feed two types of data: cannot separate (original data, can be a single node or a matted node); can separate (augmented data, merge nodes that kinda look like matted nodes)
+
+next steps:
+1. use merge_nodes.ipynb with normal criteria to check if some current annotations should actually be merged
+2. check if the merged ones detected by 1 should actually be merged
+3. use merge_nodes.ipynb with much looser criteria to create a set of augmented data of nodes that can be further separated
+4. preprocess the original data and augmented data by separating the mri image into 2d images of the same size, one node per image; can choose an image size to feed, then use scale up (pad then scale up), or blackout(pad then blackout)
+5. train
