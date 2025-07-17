@@ -95,3 +95,5 @@ next steps:
 # TODO 3. use merge_nodes.ipynb with much looser criteria to create a set of augmented data of nodes that can be further separated
 # TODO 4. preprocess the original data and augmented data by separating the mri image into 2d images of the same size, one node per image; can choose an image size to feed, use scale up and scale down
 # TODO 5. train
+
+rgb put 3 slides
