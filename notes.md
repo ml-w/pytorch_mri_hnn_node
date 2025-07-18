@@ -98,10 +98,23 @@ next steps:
 
 rgb put 3 slides
 
-merge nodes according to 3 criteria slice by slice + majority vote
+**note that only the "merged
+
+merge nodes according to 3 criteria slice by slice + majority vote 
+- used normal criteria and checked w justin
+- used loose criteria to augment data
 extract 3x 2d slices of nodes, worked but since i did it slice by slice and stacked them, each slice do not have the same size -> black border ----> maybe use max size those 3 slices instead? 
 scale up works fine, just need to deal with the black border problem just mentioned
 
-realized that the merge nodes criteria to create augmented data was a bit too strict ----> trying out different values for the parameters
+realized that the merge nodes criteria to create augmented data was a bit too strict ----> trying out different values for the parameters 
 
 also found some pretrained weights pretrained on mri images but they look kinda sus, maybe try no pretrained weights as baseline first then try loading those pretrained weights
+
+
+ask about centroid issue - different each slice / huge risk of losing part of the node
+ask about the merge nodes criteria as well - 13x to 6x - class imbalance
+
+1099 min distance 57 check why fried
+
+
+cli for the prgms
