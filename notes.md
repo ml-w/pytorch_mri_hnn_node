@@ -97,3 +97,11 @@ next steps:
 # TODO 5. train
 
 rgb put 3 slides
+
+merge nodes according to 3 criteria slice by slice + majority vote
+extract 3x 2d slices of nodes, worked but since i did it slice by slice and stacked them, each slice do not have the same size -> black border ----> maybe use max size of that nodeinstead
+scale up works fine, just need to deal with the black border problem just mentioned
+
+realized that the merge nodes criteria to create augmented data was a bit too strict ----> trying out different values for the parameters
+
+also found some pretrained weights pretrained on mri images but they look kinda sus, maybe try no pretrained weights as baseline first then try loading those pretrained weights
