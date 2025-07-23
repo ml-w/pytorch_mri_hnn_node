@@ -114,7 +114,7 @@ also found some pretrained weights pretrained on mri images but they look kinda 
 ask about centroid issue - different each slice / huge risk of losing part of the node
 ask about the merge nodes criteria as well - 13x to 6x - class imbalance
 
+
 1099 min distance 57 check why fried
-
-
+change the 3 slides to that slide and nearby slides
 cli for the prgms
