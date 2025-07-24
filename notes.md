@@ -117,7 +117,9 @@ ask about the merge nodes criteria as well - 13x to 6x - class imbalance
 v 1099 min distance 57 check why fried
 v change the 3 slides to that slide and nearby slides, size determined by max among the ones with masks
 v handle min max
+v merge nodes - produce more
 
-for the merging nodes function, try lowering the threshold of majority vote ie no need majority, maybe 25%
 cli for the prgms
 see if can handle two masks in the same layer
+train test split at patient level program
+aug3 has like 89 matted nodes, use this ba
