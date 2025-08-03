@@ -122,4 +122,6 @@ v merge nodes - produce more
 cli for the prgms
 see if can handle two masks in the same layer
 train test split at patient level program
-aug3 has like 89 matted nodes, use this ba
+
+
+use aug5
