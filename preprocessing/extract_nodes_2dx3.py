@@ -17,7 +17,7 @@ os.makedirs(log_dir, exist_ok=True)
 # ANNOTATION_FOLDER = "output/aug5/"
 # OUTPUT_DIR = "output/extract_aug5"
 
-# ANNOTATION_FOLDER = "output/merged/"
+# ANNOTATION_FOLDER = "output/valid_lavels/"
 # OUTPUT_DIR = "output/extract_real"
 
 # MRI_FOLDER = "data/test_small/images"

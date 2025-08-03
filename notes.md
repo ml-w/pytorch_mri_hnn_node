@@ -125,3 +125,4 @@ train test split at patient level program
 
 
 use aug5, has 88 matted nodes
+need to run extract nodes on aug5 and get farn the merged nodes to another folder
