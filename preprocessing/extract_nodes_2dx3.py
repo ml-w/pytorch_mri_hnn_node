@@ -6,6 +6,7 @@ import numpy as np
 import sys
 from pathlib import Path
 from random import randint
+import math
 
 log_dir = "logs"
 os.makedirs(log_dir, exist_ok=True)
@@ -334,6 +335,15 @@ def get2dx3(label, label_masks, id_list, mri_np, spacing, origin, mask_np):
                     logger.debug(f"new centroid row col half side origin is according to z3: {centroid_row} {centroid_col} {half_side} {new_origin}")
                 else:
                     logger.debug(f"z3 in id_list but z3 half side not larger than current")
+
+        min_half_side_px = math.ceil(7.5 / spacing[0])
+        if half_side < min_half_side_px:
+            old_half_side = half_side
+            half_side = min_half_side_px
+            logger.debug(f"Applied minimum half_side: increased from {old_half_side} to {half_side} pixels "
+                         f"({half_side * spacing[0]:.2f} mm half-side)")
+            half_side = half_side - IMG_PADDING
+            logger.debug(f"so img padding is removed from half_side, making half side {half_side}")
 
         box_min_row = max(0, centroid_row - half_side - IMG_PADDING)
         box_max_row = min(mri_np.shape[1] - 1, centroid_row + half_side + IMG_PADDING)
