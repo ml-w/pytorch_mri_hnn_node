@@ -124,4 +124,4 @@ see if can handle two masks in the same layer
 train test split at patient level program
 
 
-use aug5
+use aug5, has 88 matted nodes
