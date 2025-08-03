@@ -9,27 +9,28 @@ import pandas as pd
 import sys
 import os
 from tqdm import tqdm
+import argparse
 
 # Create logs directory if it doesn't exist
 log_dir = "logs"
 os.makedirs(log_dir, exist_ok=True)
 
 # Constants
-DISTANCE_THRESHOLD = 2.0 # mm
+# DISTANCE_THRESHOLD = 2.0 # mm
 DISTANCE_THRESHOLD = 4.0 # higher threshold used to augment data
-CONTACT_AREA_THRESHOLD_RATIO = 0.1 # relative threshold
+# CONTACT_AREA_THRESHOLD_RATIO = 0.1 # relative threshold
 CONTACT_AREA_THRESHOLD_RATIO = 0.01 # lower threshold used to augment data
 # CONTACT_AREA_THRESHOLD_RATIO = 0.01 # relative threshold, FOR DEBUGGING PURPOSES, PLS USE THE ABOVE ONE
-INTENSITY_DIFF_THRESHOLD = 0.2 # relative threshold
+# INTENSITY_DIFF_THRESHOLD = 0.2 # relative threshold
 INTENSITY_DIFF_THRESHOLD = 0.99 # higher threshold used to augment data
 # INTENSITY_DIFF_THRESHOLD = 0.5 # relative threshold, FOR DEBUGGING PURPOSES, PLS USE THE ABOVE ONE
-DILATION_RADIUS = 1 # voxels
+# DILATION_RADIUS = 1 # voxels
 DILATION_RADIUS = 8 # voxels, used to augment data
 # DILATION_RADIUS = 3 # voxels, FOR DEBUGGING PURPOSES, PLS USE THE ABOVE ONE
 DEBUG = False # for later functions
-MRI_FOLDER = "data/raw/images/"
-ANNOTATION_FOLDER = "output/valid_labels/"
-OUTPUT_DIR = "output/aug5"
+# MRI_FOLDER = "data/raw/images/"
+# ANNOTATION_FOLDER = "output/valid_labels/"
+# OUTPUT_DIR = "output/aug5"
 MAJ_VOTE_THRES = 0.25 # threshold to pass majority vote
 
 def setup_logger():
@@ -72,9 +73,6 @@ logger.info(f"DISTANCE_THRESHOLD: {DISTANCE_THRESHOLD}")
 logger.info(f"CONTACT_AREA_THRESHOLD_RATIO: {CONTACT_AREA_THRESHOLD_RATIO}")
 logger.info(f"INTENSITY_DIFF_THRESHOLD: {INTENSITY_DIFF_THRESHOLD}")
 logger.info(f"DILATION_RADIUS: {DILATION_RADIUS}")
-logger.info(f"MRI_FOLDER: {MRI_FOLDER}")
-logger.info(f"ANNOTATION_FOLDER: {ANNOTATION_FOLDER}")
-logger.info(f"OUTPUT_DIR: {OUTPUT_DIR}")
 logger.info(f"MAJ_VOTE_THRES: {MAJ_VOTE_THRES}")
 logger.debug("Debug logging is enabled")
 
@@ -675,7 +673,7 @@ def run_pipeline_on_case(mri_path, annotation_path, debug=False):
                     original_b_slice = extractor.Execute(original_b)
                     array_view_ori_b = sitk.GetArrayFromImage(original_b_slice)
                     pixel_count_b = int(np.sum(array_view_ori_b > 0))
-                    logger.debug(f"Pixel count for node {node_b} in slice {slice_id} is {pixel_count_a} pixels")
+                    logger.debug(f"Pixel count for node {node_b} in slice {slice_id} is {pixel_count_b} pixels")
 
                     pixel_count_min = min(pixel_count_a, pixel_count_b)
 
@@ -745,7 +743,7 @@ def run_pipeline_on_case(mri_path, annotation_path, debug=False):
 
                 logger.info(f"In node pair ({node_a}, {node_b}), number of slices that fulfilled criteria 3 is {sum(c3_list)} out of {len_common_list}")
 
-                if sum(c2_list) >= (len_common_list * MAJ_VOTE_THRES):
+                if sum(c3_list) >= (len_common_list * MAJ_VOTE_THRES):
                     logger.info(f"In node pair ({node_a}, {node_b}), half or more than half of total slices fulfilled criteria 3, proceeding to criteria 123 analysis")
                     ful_c3 = True 
                 else:
@@ -898,27 +896,23 @@ def match_files(mri_files, annotation_files):
     
     return pairs
 
-# check for incorrect file names of annotation files first
-mri_folder = MRI_FOLDER
-annotation_folder = ANNOTATION_FOLDER
-
-# Get all files in both folders
-mri_files = [os.path.join(mri_folder, f) for f in os.listdir(mri_folder) 
-            if f.endswith('.nii.gz')]
-
-annotation_files = [os.path.join(annotation_folder, f) for f in os.listdir(annotation_folder) 
-                if f.endswith('.nii.gz')]
-
-# Match MRI files with corresponding annotation files
-file_pairs = match_files(mri_files, annotation_files)
-
-
-logger.info(f"Found {len(file_pairs)} matching pairs out of {len(mri_files)} MRI files and {len(annotation_files)} annotation files")
-
 if __name__ == "__main__":
 
-    mri_folder = MRI_FOLDER
-    annotation_folder = ANNOTATION_FOLDER
+    parser = argparse.ArgumentParser(description="Process MRI and annotation folders.")
+    parser.add_argument('--mri_folder', type=str, required=True, help='Path to the MRI folder')
+    parser.add_argument('--annotation_folder', type=str, required=True, help='Path to the annotation folder')
+    parser.add_argument('--output_dir', type=str, required=True, help='Path to the output directory')
+
+    args = parser.parse_args()
+
+    mri_folder = args.mri_folder
+    annotation_folder = args.annotation_folder
+    output_dir = args.output_dir
+
+    # Log the arguments
+    logger.info(f"MRI_FOLDER: {mri_folder}")
+    logger.info(f"ANNOTATION_FOLDER: {annotation_folder}")
+    logger.info(f"OUTPUT_DIR: {output_dir}")
     
     # Get all files in both folders
     mri_files = [os.path.join(mri_folder, f) for f in os.listdir(mri_folder) 
@@ -984,7 +978,6 @@ if __name__ == "__main__":
             all_matted_nodes.extend(node_labels)
             all_matted_statuses.extend(mat_or_remov)
 
-            output_dir = OUTPUT_DIR
             os.makedirs(output_dir, exist_ok=True)
 
             output_path = os.path.join(output_dir, output_filename)

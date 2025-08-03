@@ -7,29 +7,22 @@ import sys
 from pathlib import Path
 from random import randint
 import math
+import argparse
 
 log_dir = "logs"
 os.makedirs(log_dir, exist_ok=True)
 
 # MRI_FOLDER = "data/raw/images/"
 
-# ANNOTATION_FOLDER = "output/aug4/"
-# OUTPUT_DIR = "output/extract_aug4"
+# ANNOTATION_FOLDER = "output/aug5/"
+# OUTPUT_DIR = "output/extract_aug5"
 
 # ANNOTATION_FOLDER = "output/merged/"
 # OUTPUT_DIR = "output/extract_real"
 
-MRI_FOLDER = "data/test_small/images"
-ANNOTATION_FOLDER = "data/test_small/labels"
-OUTPUT_DIR = "output/test_small"
-
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-IMAGES_DIR = os.path.join(OUTPUT_DIR, "images")
-os.makedirs(IMAGES_DIR, exist_ok=True)
-
-LABELS_DIR = os.path.join(OUTPUT_DIR, "labels")
-os.makedirs(LABELS_DIR, exist_ok=True)
+# MRI_FOLDER = "data/test_small/images"
+# ANNOTATION_FOLDER = "data/test_small/labels"
+# OUTPUT_DIR = "output/test_small"
 
 def setup_logger():
     logger = logging.getLogger(__name__)
@@ -72,9 +65,6 @@ IMG_PADDING = 3 # TODO: confirm unit
 logger.info(f"Starting parameter logging")
 logger.info(f"SW_STRIDE: {SW_STRIDE}")
 logger.info(f"IMG_PADDING: {IMG_PADDING}")
-logger.info(f"MRI_FOLDER: {MRI_FOLDER}")
-logger.info(f"ANNOTATION_FOLDER: {ANNOTATION_FOLDER}")
-logger.info(f"OUTPUT_DIR: {OUTPUT_DIR}")
 logger.debug("Debug logging is enabled")
 
 def match_files(mri_files, annotation_files):
@@ -99,22 +89,6 @@ def match_files(mri_files, annotation_files):
     
     return pairs
 
-# check for incorrect file names of annotation files first
-mri_folder = MRI_FOLDER
-annotation_folder = ANNOTATION_FOLDER
-
-# Get all files in both folders
-mri_files = [os.path.join(mri_folder, f) for f in os.listdir(mri_folder) 
-            if f.endswith('.nii.gz')]
-
-annotation_files = [os.path.join(annotation_folder, f) for f in os.listdir(annotation_folder) 
-                if f.endswith('.nii.gz')]
-
-# Match MRI files with corresponding annotation files
-file_pairs = match_files(mri_files, annotation_files)
-
-
-logger.info(f"Found {len(file_pairs)} matching pairs out of {len(mri_files)} MRI files and {len(annotation_files)} annotation files")
 
 class DataLoader:
     def __init__(self, mri_path, annotation_path):
@@ -375,11 +349,29 @@ def get2dx3(label, label_masks, id_list, mri_np, spacing, origin, mask_np):
     return list_image_stack_sitk
 
 if __name__ == "__main__":
-    mri_folder = MRI_FOLDER
-    annotation_folder = ANNOTATION_FOLDER
 
-    output_dir = OUTPUT_DIR
+    parser = argparse.ArgumentParser(description="Process MRI and annotation folders.")
+    parser.add_argument('--mri_folder', type=str, required=True, help='Path to the MRI folder')
+    parser.add_argument('--annotation_folder', type=str, required=True, help='Path to the annotation folder')
+    parser.add_argument('--output_dir', type=str, required=True, help='Path to the output directory')
+
+    args = parser.parse_args()
+
+    mri_folder = args.mri_folder
+    annotation_folder = args.annotation_folder
+    output_dir = args.output_dir
+
+    logger.info(f"MRI_FOLDER: {mri_folder}")
+    logger.info(f"ANNOTATION_FOLDER: {annotation_folder}")
+    logger.info(f"OUTPUT_DIR: {output_dir}")
+
     os.makedirs(output_dir, exist_ok=True)
+
+    IMAGES_DIR = os.path.join(output_dir, "images")
+    os.makedirs(IMAGES_DIR, exist_ok=True)
+
+    LABELS_DIR = os.path.join(output_dir, "labels")
+    os.makedirs(LABELS_DIR, exist_ok=True)
     
     # Get all files in both folders
     mri_files = [os.path.join(mri_folder, f) for f in os.listdir(mri_folder) 
