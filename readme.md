@@ -5,3 +5,5 @@ merge_nodes.py merges nodes with 3 tunable criteria: distance, area of contact r
 extract_nodes_2dx3.py gets 2dx3 images of nodes
 pad_to_size.py pads to a given size with the image randomly placed (not necessarily at the centre)
 extract_merged_from_aug.py extracts only the merged nodes from a folder of augmented nodes
+create_labels.py program to combine real individual and augmented nodes into one folder and record labels in a csv
+split.py

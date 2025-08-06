@@ -119,10 +119,7 @@ v change the 3 slides to that slide and nearby slides, size determined by max am
 v handle min max
 v merge nodes - produce more
 
-cli for the prgms
+v cli for the prgms
+check output
 see if can handle two masks in the same layer
 train test split at patient level program
-
-
-use aug5, has 88 matted nodes
-need to run extract nodes on aug5 and get farn the merged nodes to another folder

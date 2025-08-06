@@ -107,6 +107,8 @@ if __name__ == "__main__":
             logger.error(f"Error processing {matted_node}: {str(e)}")
             failed_nodes.append((matted_node, str(e)))
             continue
-
+    
+    if failed_nodes:
+        logger.warning(f"{len(failed_nodes)} images failed processing")
 
 
