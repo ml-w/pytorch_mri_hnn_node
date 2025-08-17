@@ -1,0 +1,131 @@
+# Training Configuration for MRI Classification
+# This file contains all parameters for training the MRI classifier
+
+# Random seed for reproducibility
+seed: 42
+
+# Model configuration
+model:
+  model_type: "3d_resnet_attention"
+  num_classes: 2
+  learning_rate: 1e-3
+  pretrained: false
+
+# Data configuration
+data:
+  # CSV file should have columns: file_key, label
+  # file_key should match the pattern extracted from NIfTI filenames
+  label_column: "label"
+  file_key_column: "file_key"
+  key_pattern: "(.+)\\.nii(?:\\.gz)?$"  # Extract basename without extension
+  
+  # Data splits
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+  # Data loading
+  batch_size: 8
+  num_workers: 4
+  max_train_samples: null  # Use all available samples
+  max_eval_samples: null   # Use all available samples
+
+# Preprocessing configuration
+preprocessing:
+  target_spacing: [1.0, 1.0, 1.0]  # Target voxel spacing in mm (x, y, z)
+  target_shape: [128, 128, 128]    # Target shape for cropping/padding (D, H, W)
+  
+  # Intensity preprocessing
+  intensity_clipping: true
+  clipping_percentiles: [1.0, 99.0]  # Lower and upper percentiles for clipping
+  
+  # Optional advanced preprocessing
+  histogram_matching: null  # Path to reference image for histogram matching
+  brain_extraction: false   # Whether to apply brain extraction
+  
+  # Augmentation settings
+  augmentation_probability: 0.5
+
+# Training arguments (Hugging Face Trainer compatible)
+training:
+  # Basic training settings
+  num_train_epochs: 50
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 1
+  
+  # Learning rate and optimization
+  learning_rate: 1e-3
+  weight_decay: 0.01
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Learning rate scheduling
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.1
+  warmup_steps: 0
+  
+  # Evaluation and saving
+  evaluation_strategy: "epoch"
+  eval_steps: 500
+  save_strategy: "epoch"
+  save_steps: 500
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_f1"
+  greater_is_better: true
+  
+  # Early stopping
+  early_stopping_patience: 10
+  early_stopping_threshold: 0.001
+  
+  # Logging
+  logging_strategy: "steps"
+  logging_steps: 100
+  logging_first_step: true
+  
+  # Reproducibility
+  seed: 42
+  data_seed: 42
+  
+  # Hardware settings
+  dataloader_num_workers: 4
+  dataloader_pin_memory: true
+  fp16: false  # Set to true for mixed precision training
+  bf16: false
+  
+  # Checkpointing
+  resume_from_checkpoint: null
+  ignore_data_skip: false
+  
+  # Reporting
+  report_to: ["tensorboard"]  # Can also include "wandb", "mlflow"
+  run_name: null
+  
+  # Advanced settings
+  remove_unused_columns: false
+  label_names: ["labels"]
+  
+# Validation settings
+validation:
+  compute_metrics: true
+  prediction_loss_only: false
+
+# Paths (will be overridden by command line arguments)
+paths:
+  data_dir: "/path/to/nifti/files"
+  csv_path: "/path/to/labels.csv"
+  output_dir: "./results"
+  cache_dir: "./cache"
+
+# Class names for visualization and reporting
+class_names:
+  - "No Merged Nodes"
+  - "Merged Nodes"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

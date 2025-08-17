@@ -5,7 +5,7 @@ import numpy as np
 
 from .data.loader import DataLoader
 from .models.detector import NodeDetector
-from .metrics.evaluator import Evaluator
+from .evaluation.evaluator import Evaluator
 from .visualization.plotter import Plotter
 
 class Validator:

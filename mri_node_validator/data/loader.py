@@ -90,3 +90,97 @@ class DataLoader:
                 return int(f.read().strip())
         else:
             raise ValueError(f"Unsupported label file format: {label_path}")
+    
+    def preprocess_volume(self, volume: torch.Tensor) -> torch.Tensor:
+        """Preprocess a volume tensor.
+        
+        Args:
+            volume: Input volume tensor
+            
+        Returns:
+            Preprocessed volume tensor
+        """
+        if self.normalize:
+            volume = (volume - volume.mean()) / (volume.std() + 1e-8)
+        return volume
+    
+    def preprocess_mask(self, mask: torch.Tensor) -> torch.Tensor:
+        """Preprocess a segmentation mask tensor.
+        
+        Args:
+            mask: Input mask tensor
+            
+        Returns:
+            Preprocessed mask tensor
+        """
+        # Simple thresholding to ensure binary mask
+        return (mask > 0.5).float()
+    
+    def detect_merged_nodes(self, mask: torch.Tensor) -> Dict:
+        """Detect merged nodes in segmentation mask.
+        
+        Args:
+            mask: Segmentation mask tensor
+            
+        Returns:
+            Dictionary with detection results
+        """
+        # Simple implementation - check for large connected components
+        binary_mask = (mask > 0.5).float()
+        total_volume = binary_mask.sum().item()
+        
+        # Heuristic: if total volume > threshold, assume merged nodes
+        # Using a higher threshold to avoid false positives with small volumes
+        has_merged = total_volume > 5000
+        
+        return {
+            "has_merged_nodes": has_merged,
+            "merged_regions": [{"volume": total_volume}] if has_merged else [],
+            "total_volume": total_volume
+        }
+    
+    def process_bounding_boxes(self, bboxes: list) -> list:
+        """Process bounding box annotations.
+        
+        Args:
+            bboxes: List of bounding box dictionaries
+            
+        Returns:
+            Processed bounding boxes
+        """
+        processed = []
+        for bbox in bboxes:
+            processed.append({
+                "x_min": bbox.get("x_min", 0),
+                "y_min": bbox.get("y_min", 0), 
+                "z_min": bbox.get("z_min", 0),
+                "x_max": bbox.get("x_max", 0),
+                "y_max": bbox.get("y_max", 0),
+                "z_max": bbox.get("z_max", 0),
+                "label": bbox.get("label", 0)
+            })
+        return processed
+    
+    def augment_data(self, image: torch.Tensor, mask: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """Apply data augmentation to image and mask.
+        
+        Args:
+            image: Input image tensor
+            mask: Input mask tensor
+            
+        Returns:
+            Dictionary with augmented tensors
+        """
+        if self.augmentation and self.augment:
+            # Create torchio subject for augmentation
+            subject = tio.Subject(
+                image=tio.ScalarImage(tensor=image),
+                mask=tio.LabelMap(tensor=mask)
+            )
+            augmented = self.augment(subject)
+            return {
+                "image": augmented.image.data,
+                "mask": augmented.mask.data
+            }
+        else:
+            return {"image": image, "mask": mask}

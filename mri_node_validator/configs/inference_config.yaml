@@ -1,0 +1,96 @@
+# Inference Configuration for MRI Classification
+# This file contains all parameters for running inference with trained models
+
+# Model configuration
+model:
+  model_type: "3d_resnet_attention"
+  num_classes: 2
+  learning_rate: 1e-3  # Not used in inference but needed for model loading
+
+# Data configuration for inference
+data:
+  # CSV file configuration (if using CSV-based inference)
+  label_column: "label"           # Not used in inference
+  file_key_column: "file_key"     # Column containing file keys
+  key_pattern: "(.+)\\.nii(?:\\.gz)?$"  # Pattern to extract key from filename
+  
+  # Batch processing settings
+  batch_size: 8
+  num_workers: 4
+
+# Preprocessing configuration (should match training preprocessing)
+preprocessing:
+  target_spacing: [1.0, 1.0, 1.0]  # Target voxel spacing in mm (x, y, z)
+  target_shape: [128, 128, 128]    # Target shape for cropping/padding (D, H, W)
+  
+  # Intensity preprocessing (should match training)
+  intensity_clipping: true
+  clipping_percentiles: [1.0, 99.0]
+  
+  # Advanced preprocessing (should match training)
+  histogram_matching: null  # Path to reference image for histogram matching
+  brain_extraction: false   # Whether to apply brain extraction
+  
+  # No augmentation for inference
+  augmentation_probability: 0.0
+
+# Inference settings
+inference:
+  # Device settings
+  device: "auto"  # "auto", "cpu", "cuda", "cuda:0", etc.
+  
+  # Output settings
+  return_probabilities: true
+  confidence_threshold: 0.5  # Threshold for binary classification
+  
+  # Batch processing
+  batch_size: 8
+  
+  # Memory optimization
+  use_amp: false  # Automatic mixed precision
+  pin_memory: true
+
+# Output configuration
+output:
+  # Output format: "json", "csv"
+  format: "json"
+  
+  # What to include in output
+  include_probabilities: true
+  include_confidence: true
+  include_file_paths: true
+  include_file_keys: true
+  
+  # Visualization options
+  save_sample_predictions: false
+  num_sample_predictions: 8
+  
+# Class names for output formatting
+class_names:
+  - "No Merged Nodes"
+  - "Merged Nodes"
+
+# Paths (will be overridden by command line arguments)
+paths:
+  model_path: "/path/to/trained/model.ckpt"
+  data_dir: "/path/to/nifti/files"
+  csv_path: "/path/to/file_keys.csv"  # Optional, for CSV-based inference
+  output_path: "predictions.json"
+  
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+# Performance settings
+performance:
+  # Memory management
+  max_memory_usage: 0.8  # Maximum fraction of GPU memory to use
+  
+  # Parallel processing
+  num_workers: 4
+  prefetch_factor: 2
+  
+  # Optimization
+  torch_compile: false  # Use torch.compile for optimization (PyTorch 2.0+)
+  channels_last: false  # Use channels_last memory format

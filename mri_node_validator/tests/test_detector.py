@@ -1,13 +1,13 @@
 import pytest
 import torch
-from mri_node_validator.models.detector import NodeMergingDetector
+from mri_node_validator.models.detector import NodeDetector
 from .conftest import sample_mri_volume, sample_segmentation_mask, merged_node_mask
 
-class TestNodeMergingDetector:
+class TestNodeDetector:
     @pytest.fixture
     def detector(self):
         """Fixture providing initialized detector model"""
-        return NodeMergingDetector()
+        return NodeDetector()
 
     def test_model_initialization(self, detector):
         """Test model architecture initialization"""

@@ -75,7 +75,7 @@ class SegmentationVisualizer:
         """Display sample image with prediction and ground truth.
         
         Args:
-            image: Input image tensor (C, H, W)
+            image: Input image tensor (C, D, H, W) or (D, H, W) or (C, H, W)
             prediction: Model prediction tensor
             ground_truth: Ground truth tensor
             save_path: Optional path to save figure
@@ -86,8 +86,21 @@ class SegmentationVisualizer:
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
         titles = ['Input', 'Prediction', 'Ground Truth']
         
+        def extract_slice(data):
+            """Extract 2D slice from tensor for visualization."""
+            if data.dim() == 4:  # (C, D, H, W)
+                return data[0, data.shape[1]//2, :, :]
+            elif data.dim() == 3:  # (D, H, W) or (C, H, W)
+                if data.shape[0] > 3:  # Assume depth dimension
+                    return data[data.shape[0]//2, :, :]
+                else:  # Assume channel dimension, use first channel
+                    return data[0, :, :]
+            else:  # 2D tensor
+                return data
+        
         for ax, data, title in zip(axes, [image, prediction, ground_truth], titles):
-            ax.imshow(data.permute(1, 2, 0) if data.dim() == 3 else data)
+            img_slice = extract_slice(data)
+            ax.imshow(img_slice, cmap='gray')
             ax.set_title(title)
             ax.axis('off')
             
