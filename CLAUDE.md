@@ -59,6 +59,27 @@ mypy mri_node_validator/
 pylint mri_node_validator/
 ```
 
+### Example Scripts
+```bash
+# Run example scripts to learn the framework
+cd examples/
+
+# 1. Minimal usage example
+python 01_minimal_usage.py
+
+# 2. Basic training pipeline
+python 02_training_basic.py
+
+# 3. Detailed inference with evaluation
+python 03_inference_detailed.py
+
+# 4. Advanced training with custom augmentation
+python 04_custom_augmentation.py
+
+# 5. Hugging Face Hub integration
+python 05_huggingface_hub_integration.py
+```
+
 ## Architecture Overview
 
 ### Core Components
@@ -119,3 +140,53 @@ pylint mri_node_validator/
 - NIfTI format support via torchio
 - Spacing-aware resampling for consistent voxel dimensions
 - Intensity preprocessing with percentile-based clipping
+
+## Examples Directory
+
+The `examples/` directory contains comprehensive tutorials demonstrating framework usage:
+
+### 01_minimal_usage.py
+- **Purpose**: Simplest introduction to loading and using pre-trained models
+- **Key Features**: Model loading from HuggingFace Hub, basic inference
+- **Use Case**: Quick start for new users
+
+### 02_training_basic.py
+- **Purpose**: Complete training pipeline from data creation to model saving
+- **Key Features**: CSV label setup, dataset creation, training with HuggingFace Trainer
+- **Use Case**: Training your first 3D ResNet model
+
+### 03_inference_detailed.py
+- **Purpose**: Comprehensive inference with evaluation and visualization
+- **Key Features**: Batch processing, evaluation metrics, confusion matrices, ROC curves
+- **Use Case**: Evaluating trained models on test datasets
+
+### 04_custom_augmentation.py
+- **Purpose**: Advanced training with medical image augmentation
+- **Key Features**: TorchIO augmentation pipeline, multiple augmentation strategies, performance comparison
+- **Augmentations**: Rotation, flipping, noise, blur, elastic deformation, intensity changes
+- **Use Case**: Improving model robustness with data augmentation
+
+### 05_huggingface_hub_integration.py
+- **Purpose**: Model sharing and community integration
+- **Key Features**: Hub authentication, model card creation, upload/download workflows
+- **Use Case**: Publishing and sharing trained models with the community
+
+## Best Practices
+
+### Model Development
+- Use the example scripts as starting points for your own projects
+- Follow the CSV-based labeling system for consistency
+- Implement comprehensive evaluation using the ModelEvaluator class
+- Apply appropriate medical image augmentation for better generalization
+
+### Testing and Quality
+- Run all tests before committing changes: `python -m pytest mri_node_validator/tests/`
+- Use code formatting: `black mri_node_validator/`
+- Perform type checking: `mypy mri_node_validator/`
+- Apply linting: `pylint mri_node_validator/`
+
+### Model Sharing
+- Create comprehensive model cards with performance metrics
+- Follow medical AI ethics guidelines when sharing models
+- Include proper documentation and usage examples
+- Test model loading and inference before publishing
