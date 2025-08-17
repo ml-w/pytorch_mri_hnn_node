@@ -123,7 +123,7 @@ v cli for the prgms
 
 kick becuz the program given does not seem to have a training part, only inference; requires annotation which would require me to modify previous programs and verify them again -> rewrote
 
-check output
+v check output
 add preprocessing steps
 train test split at patient level program
 write code to train
