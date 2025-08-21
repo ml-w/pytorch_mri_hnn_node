@@ -63,7 +63,7 @@ def copy_files_from_folder(folder_path, output_dir, individual_value, folder_typ
             shutil.copy2(file_path, dest_path)
             
             file_data.append({
-                'filename': file_path.name,
+                'filename': new_filename,
                 'individual': individual_value
             })
             
