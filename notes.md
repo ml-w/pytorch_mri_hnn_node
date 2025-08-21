@@ -124,8 +124,7 @@ v cli for the prgms
 kick becuz the program given does not seem to have a training part, only inference; requires annotation which would require me to modify previous programs and verify them again -> rewrote
 
 v check output
-add preprocessing steps
-train test split at patient level program
-write code to train
+
+# TODO: update create_labels.py so that files copied from each folder will have a prefix, then need to run that to create merged and need to run create p id col again
 
 # TODO: see why x y at bottom left in itksnap is 1 224 not 1 1
