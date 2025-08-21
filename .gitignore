@@ -1,6 +1,4 @@
-data/*
 *.nii.gz
-logs/*
-output/*
-*/data/*
-*/output/*
+**/data/
+**/output/
+**/logs/
