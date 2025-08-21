@@ -50,7 +50,16 @@ def copy_files_from_folder(folder_path, output_dir, individual_value, folder_typ
     
     for file_path in tqdm(files, desc=f"Copying {folder_type} files"):
         try:
-            dest_path = Path(output_dir) / file_path.name
+            source_folder_name = file_path.parent.name
+
+            new_filename = f"{source_folder_name}_{file_path.name}"
+
+            dest_path = Path(output_dir) / new_filename
+
+            if dest_path.exists():
+                logger.warning(f"File already exists in output directory: {dest_path}")
+                continue
+            
             shutil.copy2(file_path, dest_path)
             
             file_data.append({
@@ -75,8 +84,9 @@ def create_csv_file(file_data, output_dir):
         return
     
     df = pd.DataFrame(file_data)
+    filtered_df = df[df['filename'].str.contains('.nii.gz', na=False)]
     csv_path = Path(output_dir) / 'labels.csv'
-    df.to_csv(csv_path, index=False)
+    filtered_df.to_csv(csv_path, index=False)
     
     real_count = len([f for f in file_data if f['individual'] == 1])
     aug_count = len([f for f in file_data if f['individual'] == 0])

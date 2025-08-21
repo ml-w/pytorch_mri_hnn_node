@@ -125,6 +125,4 @@ kick becuz the program given does not seem to have a training part, only inferen
 
 v check output
 
-# TODO: update create_labels.py so that files copied from each folder will have a prefix, then need to run that to create merged and need to run create p id col again
-
 # TODO: see why x y at bottom left in itksnap is 1 224 not 1 1
