@@ -17,7 +17,7 @@ def seed_everything(seed: int = 42):
 # --- Configuration Dictionary ---
 CONFIG = {
     "data": {
-        "root_dir": "training/clau/data",
+        "root_dir": "training/clau/data/merged_small",
         "labels_csv": "training/clau/data/merged_small/merged_small.csv",
         "train_folds": [0, 1, 2, 3],
         "val_folds": [4],

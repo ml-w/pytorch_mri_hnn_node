@@ -1,17 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from torchvision import models
 from sklearn.model_selection import StratifiedGroupKFold
 import pandas as pd
 from tqdm import tqdm
 import torchmetrics
 import os
+import torchio as tio
 
-# Import from our custom modules
 from utils import seed_everything, CONFIG
-from dataset import NiftiDataset, get_transforms
+from dataset import get_transforms, permute_and_squeeze
 
 def get_model(pretrained: bool = True):
     """
@@ -24,7 +24,7 @@ def get_model(pretrained: bool = True):
         
     model = models.resnet50(weights=weights)
     
-    # Adapt the final layer for binary classification (1 output logit)
+    # Adapt the final layer for binary classification
     in_features = model.fc.in_features
     model.fc = nn.Linear(in_features, 1)
     
@@ -39,18 +39,16 @@ def train_one_epoch(model, dataloader, optimizer, criterion, device, scaler):
     total_loss = 0.0
     progress_bar = tqdm(dataloader, desc="Training", leave=False)
     
-    for images, labels in progress_bar:
-        images = images.to(device)
-        labels = labels.to(device).unsqueeze(1) # Ensure labels are [B, 1]
+    for batch in progress_bar:
+        images = batch['mri']['data']  # Shape: (B, 1, H, W, 3)
+        images = images.squeeze(1).permute(0, 3, 1, 2).to(device)  # Shape: (B, 3, H, W)
+        labels = batch['label'].to(device).unsqueeze(1).float()  # Shape: (B, 1)
         
         optimizer.zero_grad()
-        
-        # Mixed precision context
         with torch.cuda.amp.autocast(enabled=CONFIG["training"]["use_amp"]):
             outputs = model(images)
             loss = criterion(outputs, labels)
         
-        # Gradient scaling
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
@@ -71,17 +69,17 @@ def validate(model, dataloader, criterion, device, metrics_collection):
     progress_bar = tqdm(dataloader, desc="Validation", leave=False)
     
     with torch.no_grad():
-        for images, labels in progress_bar:
-            images = images.to(device)
-            labels = labels.to(device).unsqueeze(1)
+        for batch in progress_bar:
+            images = batch['mri']['data']  # Shape: (B, 1, H, W, 3)
+            images = images.squeeze(1).permute(0, 3, 1, 2).to(device)  # Shape: (B, 3, H, W)
+            labels = batch['label'].to(device).unsqueeze(1).float()
             
             outputs = model(images)
             loss = criterion(outputs, labels)
             total_loss += loss.item()
             
-            # Update metrics
             preds = torch.sigmoid(outputs)
-            metrics_collection.update(preds, labels.int())
+            metrics_collection.update(preds, labels.long())
 
     avg_loss = total_loss / len(dataloader)
     computed_metrics = metrics_collection.compute()
@@ -104,29 +102,58 @@ def main():
     cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=CONFIG["training"]["seed"])
 
     # 4. Start Cross-Validation Loop
-    # The loop now correctly uses the indices it generates.
-    for fold, (train_idx, val_idx) in enumerate(cv.split(X=df, y=df['label'], groups=df['patient_id'])):
+    for fold, (train_idx, val_idx) in enumerate(cv.split(X=df, y=df['individual'], groups=df['patient_id'])):
         print(f"\n--- Starting Fold {fold+1}/{n_splits} ---")
                 
         # 5. Create Datasets & DataLoaders for the current fold
+        
+        # patch_level_transform = tio.Lambda(
+        #     # permute_and_squeeze,
+        #     types_to_apply=['mri']
+        # )
+        
+        # train_volume_transforms = get_transforms(train=True)
+        # train_transform_list = list(train_volume_transforms.transforms) + [patch_level_transform]
+        # train_transform = tio.Compose(train_transform_list)
+        
+        # val_volume_transforms = get_transforms(train=False)
+        # val_transform_list = list(val_volume_transforms.transforms) + [patch_level_transform]
+        # val_transform = tio.Compose(val_transform_list)
+
         train_transform = get_transforms(train=True)
         val_transform = get_transforms(train=False)
 
-        # Create two separate dataset objects to avoid transform conflicts
-        full_train_dataset = NiftiDataset(df, root_dir=CONFIG["data"]["root_dir"], transform=train_transform)
-        full_val_dataset = NiftiDataset(df, root_dir=CONFIG["data"]["root_dir"], transform=val_transform)
-
-        # Create subsets using the indices for the current fold
-        train_dataset = Subset(full_train_dataset, train_idx)
-        val_dataset = Subset(full_val_dataset, val_idx)
+        train_subjects = [
+            tio.Subject(
+                mri=tio.ScalarImage(os.path.join(CONFIG["data"]["root_dir"], row.filename)), 
+                label=row.individual
+            ) 
+            for row in df.iloc[train_idx].itertuples()
+        ]
+        train_dataset = tio.SubjectsDataset(train_subjects, transform=train_transform)
         
         train_loader = DataLoader(
-            train_dataset, batch_size=CONFIG["training"]["batch_size"], shuffle=True,
-            num_workers=CONFIG["training"]["num_workers"], pin_memory=True
+            train_dataset, 
+            batch_size=CONFIG["training"]["batch_size"],
+            shuffle=True,
+            num_workers=CONFIG["training"]["num_workers"],
+            pin_memory=True
         )
+        
+        val_subjects = [
+            tio.Subject(
+                mri=tio.ScalarImage(os.path.join(CONFIG["data"]["root_dir"], row.filename)), 
+                label=row.individual
+            ) 
+            for row in df.iloc[val_idx].itertuples()
+        ]
+        val_dataset = tio.SubjectsDataset(val_subjects, transform=val_transform)
         val_loader = DataLoader(
-            val_dataset, batch_size=CONFIG["training"]["batch_size"], shuffle=False,
-            num_workers=CONFIG["training"]["num_workers"], pin_memory=True
+            val_dataset, 
+            batch_size=CONFIG["training"]["batch_size"], 
+            shuffle=False,
+            num_workers=CONFIG["training"]["num_workers"],
+            pin_memory=True
         )
         
         print(f"Fold {fold+1} Data: {len(train_dataset)} train samples, {len(val_dataset)} validation samples.")
@@ -134,10 +161,10 @@ def main():
         # 6. Re-initialize Model, Loss, Optimizer for each fold
         model = get_model(pretrained=CONFIG["model"]["pretrained"]).to(device)
         
-        # Robustly calculate pos_weight for the current training data
-        train_labels = df.iloc[train_idx]['label']
+        # Calculate pos_weight for the current training data
+        train_labels = df.iloc[train_idx]['individual']
         counts = train_labels.value_counts()
-        pos_weight_val = counts.get(0, 1) / counts.get(1, 1) # Use .get for safety
+        pos_weight_val = counts.get(0, 1) / counts.get(1, 1)
         pos_weight = torch.tensor(pos_weight_val, device=device)
         criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
         
@@ -155,6 +182,9 @@ def main():
         metrics = torchmetrics.MetricCollection({
             'accuracy': torchmetrics.Accuracy(task='binary'),
             'auroc': torchmetrics.AUROC(task='binary'),
+            'sensitivity': torchmetrics.Recall(task='binary'),
+            'specificity': torchmetrics.Specificity(task='binary'),
+            'f1': torchmetrics.F1Score(task='binary'),
         }).to(device)
 
         best_auroc = 0.0
@@ -178,15 +208,20 @@ def main():
             
             auroc = val_metrics['auroc'].item()
             accuracy = val_metrics['accuracy'].item()
+            sensitivity = val_metrics['sensitivity'].item()
+            specificity = val_metrics['specificity'].item()
+            f1 = val_metrics['f1'].item()
             
-            print(f"Epoch {epoch+1} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {accuracy:.4f} | Val AUROC: {auroc:.4f}")
-            
+            print(
+                f"Epoch {epoch+1} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | "
+                f"Val AUROC: {auroc:.4f} | Val Acc: {accuracy:.4f} | "
+                f"Val Sensitivity: {sensitivity:.4f} | Val Specificity: {specificity:.4f} | Val F1: {f1:.4f}"
+            )            
             scheduler.step(auroc)
             
             if auroc > best_auroc:
                 best_auroc = auroc
                 epochs_no_improve = 0
-                # CORRECTED checkpoint path to be fold-specific
                 checkpoint_path = os.path.join(CONFIG["output"]["dir"], f"best_model_fold_{fold+1}.pth")
                 checkpoint = {
                     'fold': fold + 1,
@@ -208,6 +243,10 @@ def main():
                 
         print(f"\nTraining for Fold {fold+1} finished.")
         print(f"Best validation AUROC for Fold {fold+1}: {best_auroc:.4f}")
+
+        del model, optimizer, scheduler, train_loader, val_loader
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
 if __name__ == '__main__':
     main()
