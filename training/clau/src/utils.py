@@ -11,19 +11,16 @@ def seed_everything(seed: int = 42):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    # Set deterministic behavior for cudnn
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
 # --- Configuration Dictionary ---
 CONFIG = {
     "data": {
-        "root_dir": "project/data",
-        "labels_csv": "project/data/labels.csv",
-        "train_folds": [0, 1, 2], # Using 5-fold CV, training on 3 folds
-        "val_folds": [3],         # validating on 1 fold
-        "test_folds": [4],        # holding out 1 fold for test
+        "root_dir": "training/clau/data",
+        "labels_csv": "training/clau/data/merged_small/merged_small.csv",
+        "train_folds": [0, 1, 2, 3],
+        "val_folds": [4],
     },
     "model": {
         "name": "resnet50",
@@ -40,8 +37,13 @@ CONFIG = {
         "weight_decay": 1e-5,
         "use_amp": True, # Use Automatic Mixed Precision
         "patience": 5,   # Early stopping patience
+        "learning_rate": 1e-4,
+        "scheduler_mode": "max",
+        "scheduler_patience": 3,
+        "scheduler_factor": 0.1,
+        "n_splits": 5,
     },
     "output": {
-        "dir": "clau/outputs",
+        "dir": "training/clau/outputs",
     }
 }

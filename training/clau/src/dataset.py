@@ -8,7 +8,7 @@ class NiftiDataset(torch.utils.data.Dataset):
     Custom PyTorch Dataset for loading 3-channel NIfTI patches.
 
     Args:
-        df (pd.DataFrame): DataFrame with 'filepath' and 'label' columns.
+        df (pd.DataFrame): DataFrame with 'filename' and 'individual' columns.
         root_dir (str): The root directory where NIfTI files are stored.
         transform (callable, optional): A Torchio transform pipeline. Defaults to None.
     """
@@ -22,14 +22,14 @@ class NiftiDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        filepath = os.path.join(self.root_dir, row['filepath'])
-        label = torch.tensor(row['label'], dtype=torch.float)
+        filename = os.path.join(self.root_dir, row['filename'])
+        individual = torch.tensor(row['individual'], dtype=torch.float)
 
         # A Torchio Subject is a dictionary of images.
         # We load our 3-slice NIfTI as a single ScalarImage.
         # The shape (224, 224, 3) will be interpreted as (W, H, D) where D is the channel dim.
         subject = tio.Subject(
-            mri=tio.ScalarImage(filepath)
+            mri=tio.ScalarImage(filename)
         )
 
         # Apply transforms if any
@@ -40,7 +40,7 @@ class NiftiDataset(torch.utils.data.Dataset):
         # Torchio handles the channel permutation to (C, H, W)
         image_tensor = subject.mri.data.float()
 
-        return image_tensor, label
+        return image_tensor, individual
 
 def get_transforms(train: bool):
     """
